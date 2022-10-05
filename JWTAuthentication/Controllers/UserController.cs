@@ -24,8 +24,7 @@ namespace JWTAuthentication.Controllers
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
             var user = identity.Claims;
-
-            var abc = identity.IsAuthenticated;
+                       
 
             if (identity != null)
             {

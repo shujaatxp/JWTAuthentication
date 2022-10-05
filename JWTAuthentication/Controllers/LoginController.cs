@@ -14,65 +14,33 @@ namespace JWTAuthentication.Controllers
     public class LoginController : ControllerBase
     {
         private readonly IConfiguration _config;
-        
-        public LoginController(IConfiguration config)
+        private readonly UserLogin userLogin;
+        public LoginController(IConfiguration config, UserLogin users)
         {
             _config = config;
+            userLogin = users;
         }
 
-        [AllowAnonymous]
+        [ServiceFilter(typeof(CustomAuthorization))]        
         [HttpPost]
-        public ActionResult Login([FromBody] UserLogin userLogin)
+        public void Login()
         {
-            var user = Authenticate(userLogin);
-            if (user != null)
-            {
-                var token = GenerateToken(user);
-                return Ok(token);
-            }
+            //var username = HttpContext.Request.Headers["X-Username"];
+            //var password = HttpContext.Request.Headers["X-Password"];
 
-            return NotFound("user not found");
-        }
+            //userLogin.Username = username;
+            //userLogin.Password = password;
 
-        private ActionResult GenerateToken(UserModel user)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier,user.Username),
-                new Claim(ClaimTypes.Role,user.Role)
-            };
-
-            var dt = DateTime.Now.AddSeconds(30);
-
-            var token = new JwtSecurityToken(_config["Jwt:Issuer"],
-                _config["Jwt:Audience"],
-                claims,
-                expires: dt.ToLocalTime(),
-                signingCredentials: credentials) ;
+            //var user = Authenticate(userLogin);
+            //if (user != null)
+            //{
+            //    var token = GenerateToken(user);
+            //    return Ok(token);
+            //}
 
             
-
-            return Ok(
-                new
-                {
-                    Token = new JwtSecurityTokenHandler().WriteToken(token),
-                    Expiration =  token.ValidTo.ToLocalTime()
-                }
-                );
-
         }
 
-        private UserModel Authenticate(UserLogin userLogin)
-        {
-            var currentUser = UserConstants.Users.FirstOrDefault(x => x.Username.ToLower() ==
-                userLogin.Username.ToLower() && x.Password == userLogin.Password);
-            if (currentUser != null)
-            {
-                return currentUser;
-            }
-            return null;
-        }
+        
     }
 }
